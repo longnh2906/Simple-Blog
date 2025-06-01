@@ -2,6 +2,8 @@ const express = require("express");
 const Post = require("../db/postModel");
 const User = require("../db/userModel");
 const router = express.Router();
+
+
 router.post("/post", async (request, response) => {
   const post = new Post(request.body);
   try {
@@ -68,7 +70,8 @@ router.get("/search/term", async (req, res) => {
       slug: { $regex: term, $options: "i" },
     });
     res.send(posts);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).send({ error });
   }
 });
@@ -81,5 +84,71 @@ router.get("/count", async (req, res) => {
     res.status(500).send({ error });
   }
 });
+
+router.patch("/post/:slug", async (req, res) => {
+  try {
+    const post = await Post.findOneAndUpdate(
+      { slug: req.params.slug },
+      req.body,
+      { new: true }
+    );
+    if (!post) {
+      return res.status(404).send({ message: "Post not found" });
+    }
+    res.send(post);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+router.post("/register", async (req, res) => {
+  const {username, password} = req.body;
+  if (!username || !password) {
+    return res.status(400).send({message: "Nhập đầy đủ thông tin"});
+  }
+  try {
+    const existingUser = await User.findOne({ username });
+
+    if(existingUser){
+      return res.status(409).send({message: "Tên đăng nhập đã tồn tại"});
+    }
+    const newUser = new User({username, password});
+    await newUser.save();
+    res.status(201).send({user: newUser});
+  }
+  catch (err) {
+    res.status(500).send({message: "Lỗi server", error: err });
+  }
+});
+
+
+router.delete("/post/:slug", async(req, res) => {
+  try {
+    const deletedPost = await Post.findOneAndDelete({slug: req.params.slug});
+    if(!deletedPost){
+      return res.status(404).send({message: "Post not found"});
+    }
+    res.send({message: "Post deleted successfully"});
+  }
+  catch(error) {
+    res.status(500).send({error});
+  }
+});
+
+router.post("/post/:slug/comment", async (req, res) => {
+  const { content } = req.body;
+  try {
+    const post = await Post.findOne({ slug: req.params.slug });
+    if (!post) return res.status(404).send({ message: "Post not found" });
+
+    post.comments.push({  content });
+    await post.save();
+
+    res.status(201).send({ message: "Comment added", comment: {  content } });
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
 
 module.exports = router;

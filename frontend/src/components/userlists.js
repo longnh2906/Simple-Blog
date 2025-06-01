@@ -1,4 +1,4 @@
-import { data, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 function Userslist() {
@@ -7,10 +7,7 @@ function Userslist() {
   useEffect(() => {
     fetch("http://localhost:8080/api/users")
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Fetched users:", data);
-        setUsers(data);
-      });
+      .then(setUsers);
   }, []);
 
   return (
@@ -18,13 +15,13 @@ function Userslist() {
       <ul>
         {users.map((user) => (
           <li key={user._id}>
-            <Link to={`/users/${user.username}`}>
-              <h3>{user.username}</h3>
-            </Link>
+            <h3>{user.username}</h3>
           </li>
         ))}
       </ul>
+      <p>Tổng số user: {users.length}</p>
     </div>
   );
 }
+
 export default Userslist;

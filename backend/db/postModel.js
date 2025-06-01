@@ -17,5 +17,10 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide a category!"],
   },
+  comments: [
+    {
+      content: String
+    }
+  ]
 });
 module.exports = mongoose.models.Post || mongoose.model("Post", PostSchema);
